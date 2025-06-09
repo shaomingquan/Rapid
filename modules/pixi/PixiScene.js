@@ -19,6 +19,7 @@ import { PixiLayerRapid } from './PixiLayerRapid.js';
 import { PixiLayerRapidOverlay } from './PixiLayerRapidOverlay.js';
 import { PixiLayerStreetsidePhotos } from './PixiLayerStreetsidePhotos.js';
 import { PixiLayerGeoScribble } from './PixiLayerGeoScribble.js';
+import { PixiLayerTest } from './PixiLayerTest.js';
 
 
 // Convert a single value, an Array of values, or a Set of values.
@@ -89,7 +90,9 @@ export class PixiScene extends EventEmitter {
 
       new PixiLayerLabels(this, 'labels'),
       new PixiLayerEditBlocks(this, 'edit-blocks'),
-      new PixiLayerMapUI(this, 'map-ui')
+      new PixiLayerMapUI(this, 'map-ui'),
+      new PixiLayerTest(this, 'test'),
+
     ].forEach(layer => this.layers.set(layer.id, layer));
 
     this.reset();

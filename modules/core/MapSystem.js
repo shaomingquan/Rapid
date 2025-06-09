@@ -1,12 +1,13 @@
 import { selection } from 'd3-selection';
 import {
   DEG2RAD, RAD2DEG, TAU, Extent, Viewport, geoMetersToLon, geoZoomToScale,
-  numClamp, numWrap, vecAdd, vecRotate, vecSubtract
+  numClamp, numWrap, vecAdd, vecRotate, vecSubtract, vecEqual
 } from '@rapid-sdk/math';
 
 import { AbstractSystem } from './AbstractSystem.js';
 import { QAItem } from '../osm/index.js';
 import { utilTotalExtent } from '../util/index.js';
+import { Application, Graphics, Container} from 'pixi.js';
 
 const TILESIZE = 256;
 const MIN_Z = 2;
@@ -59,6 +60,34 @@ export class MapSystem extends AbstractSystem {
     this.render = this.render.bind(this);
     this.immediateRedraw = this.immediateRedraw.bind(this);
     this.deferredRedraw = this.deferredRedraw.bind(this);
+
+    this._customApp = new Application();
+    const _customApp = this._customApp;
+    const _circle = new Graphics();
+    const container = new Container();
+    this._container = container;
+    // container.addChild(_circle);
+    // _customApp.stage.addChild(container);
+
+    // _circle.circle(0, 0, 10);
+    // _circle.fill(0xde3249, 1);
+  }
+
+  testDraw(x, y) {
+    // const gfx = this.context.systems.gfx;
+    // const _customApp = this._customApp;
+    // this._container.position.set(x, y);
+
+    // const pixiDims = gfx._pixiViewport.dimensions;
+    // const canvasDims = [_customApp.screen.width, _customApp.screen.height];
+    // if (!vecEqual(pixiDims, canvasDims)) {
+    //   const [w, h] = pixiDims;
+    //   const renderer = _customApp.renderer;
+    //   renderer.resize(w, h);
+    // }
+    // context.systems.gfx.pixi.renderer.gl.finish();
+    // _customApp.render();
+    // _customApp.renderer.gl.finish();
   }
 
 
@@ -114,6 +143,9 @@ export class MapSystem extends AbstractSystem {
           .on('draw', () => {
             this._updateHash();
             this.emit('draw', { full: true });  // pass {full: true} for legacy receivers
+
+            // SMQ, 在这里用pixijs在新加坡画一个圆儿，验证渲染是否能同步
+            // this.testDraw();
           });
 
         editor
@@ -279,6 +311,52 @@ export class MapSystem extends AbstractSystem {
     $$supersurface
       .append(() => gfx.overlay)
       .attr('class', 'overlay');
+
+    // const urlhash = context.systems.urlhash;
+    // let renderPreference = 'webgl';
+    // let renderGLVersion = 2;
+    // switch (urlhash.initialHashParams.get('renderer')) {
+    //   case 'webgpu':
+    //     renderPreference = 'webgpu';
+    //     break;
+    //   case 'webgl1':
+    //     renderGLVersion = 1;
+    //     break;
+    // }
+
+    // gfx.initAsync().then(async () => {
+    //   const $supersurface = gfx.supersurface;
+    //   const $rapidsurface = gfx.surface;
+    //   const highQuality = true;
+    //   // const device = gfx.pixi_device;
+    //   await this._customApp.init({
+    //     // device,
+    //     antialias: highQuality,
+    //     autoDensity: highQuality,
+    //     autoStart: false,     // Avoid the ticker
+    //     events: {
+    //       move: false,
+    //       globalMove: false,
+    //       click: true,
+    //       wheel: false
+    //     },
+    //     // multiView: true,   // Needed for minimap
+    //     powerPreference: 'high-performance',
+    //     preference: renderPreference,
+    //     preferWebGLVersion: renderGLVersion,
+    //     preserveDrawingBuffer: true,
+    //     resolution: highQuality ? window.devicePixelRatio : 1,
+    //     sharedLoader: true,
+    //     sharedTicker: false,  // Avoid the ticker
+    //     textureGCActive: true,
+    //     useBackBuffer: false,
+    //     backgroundAlpha: 0,
+    //   });
+    //   const $customsurface = this._customApp.canvas;
+
+    //   console.log('dom dependencies', this._customApp, $supersurface, $rapidsurface, $customsurface);
+    //   $rapidsurface.insertAdjacentElement('afterend', $customsurface);
+    // });
   }
 
 

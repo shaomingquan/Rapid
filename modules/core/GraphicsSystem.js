@@ -6,6 +6,7 @@ import { PixiEvents } from '../pixi/PixiEvents.js';
 import { PixiScene } from '../pixi/PixiScene.js';
 import { PixiTextures } from '../pixi/PixiTextures.js';
 import { utilSetTransform } from '../util/util.js';
+import { initDevtools } from '@pixi/devtools';
 
 const THROTTLE = 250;  // throttled rendering milliseconds (for now)
 
@@ -552,9 +553,12 @@ export class GraphicsSystem extends AbstractSystem {
       const renderer = this.pixi.renderer;
       renderer.resize(w, h);
     }
+    
+    const [x, y] = this.context.viewport.project([-73.9976413, 40.7208288]);
+    this.pixi.render();
 
     // Let's go!
-    this.pixi.render();
+    this.context.systems.map.testDraw(x, y);
 
 // multiview?  it renders but is not interactive
 //    this.pixi.renderer.render({
@@ -574,7 +578,7 @@ export class GraphicsSystem extends AbstractSystem {
     this._timeToNextRender = THROTTLE;
 
     this._drawPending = false;
-    this.emit('draw');
+    this.emit('draw'); // SMQ, this is called every frame
     this._frame++;
   }
 
@@ -674,7 +678,9 @@ export class GraphicsSystem extends AbstractSystem {
         break;
     }
 
+
     const options = {
+      // device,
       antialias: this.highQuality,
       autoDensity: this.highQuality,
       autoStart: false,     // Avoid the ticker
@@ -685,7 +691,7 @@ export class GraphicsSystem extends AbstractSystem {
         click: true,
         wheel: false
       },
-      multiView: true,   // Needed for minimap
+      // multiView: true,   // Needed for minimap
       powerPreference: 'high-performance',
       preference: renderPreference,
       preferWebGLVersion: renderGLVersion,
@@ -694,11 +700,14 @@ export class GraphicsSystem extends AbstractSystem {
       sharedLoader: true,
       sharedTicker: false,  // Avoid the ticker
       textureGCActive: true,
-      useBackBuffer: false
+      useBackBuffer: false,
     };
 
+    // SMQ, 是用同一个application，还是用两个application？
     this.pixi = new PIXI.Application();
+    initDevtools({ app: this.pixi });
     return this.pixi.init(options);  // return Pixi's init Promise
+
   }
 
 
