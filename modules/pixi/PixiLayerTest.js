@@ -1,6 +1,7 @@
 import { AbstractLayer } from './AbstractLayer.js';
 import { PixiFeaturePoint } from './PixiFeaturePoint.js';
 import * as PIXI from 'pixi.js';
+import { Application, createRoot } from '@pixi/react';
 
 /**
  * PixiLayerOsmose
@@ -76,10 +77,9 @@ export class PixiLayerTest extends AbstractLayer {
       if (!feature) {
         const style = {
           markerName: 'test-marker',
-          markerTint: '#000000',
           iconName: 'fas-question',
           iconSize: 32,
-          iconTint: 0x05cb63
+          iconTint: this._colors[this._colorIndex]
         };
 
         feature = new PixiFeaturePoint(this, featureID);
@@ -97,30 +97,45 @@ export class PixiLayerTest extends AbstractLayer {
 
   // SMQ, try raw render, 跳出框架去渲染
   // http://localhost:8080/#map=19.97/40.72082/-73.99752&background=Bing&disable_features=points,service_roads,paths,buildings,building_parts,indoor,landuse,boundaries,water,rail,pistes,aerialways,power,past_future,others
+  _container = null;
   _g = null;
+  _colors = [0xde3249, 0x05cb63];
+  _colorIndex = 0;
   renderRaw(frame, viewport, zoom) {
-    const parentContainer = this.scene.groups.get('qa'); // 随便
+    const gfx = this.gfx;
+    const origin = gfx.origin;
+
 
     const loc = [-73.9976413, 40.7208288];
     const [x, y] = viewport.project(loc);
 
-    if (this._g) {
+    if (this._g && this._container) {
       const g = this._g;
       g.clear();
-      g.circle(x, y, 10);
-      g.fill(0xde3249);
-      return;
-    }
+      // 如果要更新颜色就要加这两行
+      g.circle(0, 0, 10);
+      g.fill(this._colors[this._colorIndex]);
+      // 如果只更新位置，则只加这一行
+      g.position.set(x, y);
+    } else {
+      const container = this._container = new PIXI.Container();
+      container.label = 'private';
+      container.sortableChildren = true;
+      container.zIndex = 100;
+      origin.addChild(container);
 
-    if (!this._g) {
       const g = new PIXI.Graphics();
-      g.label = 'test-rect';
-
-      g.clear();
-      g.circle(x, y, 10);
-      g.fill(0xde3249);
-      parentContainer.addChild(g);
+      g.eventMode = 'static';
+      g.cursor = 'pointer';
+      g.on('pointerdown', () => {
+        this._colorIndex = (this._colorIndex + 1) % this._colors.length;
+        this.gfx.immediateRedraw();
+      });
+      container.addChild(g);
       this._g = g;
+      g.position.set(x, y);
+      g.circle(0, 0, 10);
+      g.fill(this._colors[this._colorIndex]);
     }
   }
 
